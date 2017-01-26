@@ -8,8 +8,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="second_table")
-public class Second {
+@Table(name="first_table")
+public class First {
 	
 	@Id
     @Column(name="id")
