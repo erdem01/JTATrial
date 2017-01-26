@@ -2,7 +2,9 @@ package erdemc;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.Banner;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -10,6 +12,7 @@ import erdemc.dao.first.FirstDAO;
 import erdemc.dao.second.SecondDAO;
 
 @SpringBootApplication
+@EnableAutoConfiguration(exclude=HibernateJpaAutoConfiguration.class)
 public class JtaExecuterApplication {
 	
 	@Autowired
