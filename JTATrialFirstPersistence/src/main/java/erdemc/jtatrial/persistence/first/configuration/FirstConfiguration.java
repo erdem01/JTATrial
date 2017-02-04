@@ -1,4 +1,4 @@
-package erdemc.configuration;
+package erdemc.jtatrial.persistence.first.configuration;
 
 import java.util.HashMap;
 
@@ -9,30 +9,37 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.orm.jpa.JpaVendorAdapter;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import com.atomikos.jdbc.AtomikosDataSourceBean;
 import com.mysql.jdbc.jdbc2.optional.MysqlXADataSource;
 
-import erdemc.dao.first.FirstDAO;
-import erdemc.model.first.First;
+import erdemc.jtatrial.persistence.first.annotations.FirstPersistenceQualifier;
+import erdemc.jtatrial.persistence.first.annotations.StandaloneProfile;
+import erdemc.jtatrial.persistence.first.dao.FirstDAO;
+import erdemc.jtatrial.persistence.first.model.First;
+import erdemc.jtatrial.txn.configuration.AtomikosJtaPlatform;
 
+@FirstPersistenceQualifier
 @Configuration
 @DependsOn("transactionManager")
 @EnableJpaRepositories(basePackageClasses = FirstDAO.class, entityManagerFactoryRef = "firstEntityManager", transactionManagerRef = "firstTransactionManager")
 public class FirstConfiguration {
 
-	@Primary
 	@Bean
 	@DependsOn("transactionManager")
-	public LocalContainerEntityManagerFactoryBean firstEntityManager(JpaVendorAdapter vendorAdapter) {
+	public LocalContainerEntityManagerFactoryBean firstEntityManager(@FirstPersistenceQualifier DataSource dataSource) {
 		HashMap<String, Object> properties = new HashMap<String, Object>();
 		properties.put("hibernate.transaction.jta.platform", AtomikosJtaPlatform.class.getName());
 		properties.put("javax.persistence.transactionType", "JTA");
 		
+		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
 		LocalContainerEntityManagerFactoryBean entityManager = new LocalContainerEntityManagerFactoryBean();
-		entityManager.setJtaDataSource(firstDataSource());
+		entityManager.setJtaDataSource(dataSource);
+		entityManager.setJpaVendorAdapter(vendorAdapter);
 		entityManager.setJpaVendorAdapter(vendorAdapter);
 		entityManager.setPackagesToScan(First.class.getPackage().getName());
 		entityManager.setPersistenceUnitName("firstPersistenceUnit");
@@ -40,7 +47,6 @@ public class FirstConfiguration {
 		return entityManager;
 	}
 
-	@Primary
 	@Bean(initMethod = "init", destroyMethod = "close")
 	public DataSource firstDataSource() {
 		MysqlXADataSource mysqlXaDataSource = new MysqlXADataSource();
@@ -56,12 +62,13 @@ public class FirstConfiguration {
 		return xaDataSource;
 	}
 
-//	@Primary
-//	@Bean
-//	public PlatformTransactionManager firstTransactionManager() {
-//		JpaTransactionManager transactionManager = new JpaTransactionManager();
-//		transactionManager.setEntityManagerFactory(firstEntityManager().getObject());
-//		return transactionManager;
-//	}
+	@StandaloneProfile
+	@Primary
+	@Bean
+	public PlatformTransactionManager firstTransactionManager(@FirstPersistenceQualifier LocalContainerEntityManagerFactoryBean entityManager) {
+		JpaTransactionManager transactionManager = new JpaTransactionManager();
+		transactionManager.setEntityManagerFactory(entityManager.getObject());
+		return transactionManager;
+	}
 
 }

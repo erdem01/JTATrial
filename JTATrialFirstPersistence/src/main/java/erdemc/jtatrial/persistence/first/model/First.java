@@ -1,4 +1,4 @@
-package erdemc.model.first;
+package erdemc.jtatrial.persistence.first.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
