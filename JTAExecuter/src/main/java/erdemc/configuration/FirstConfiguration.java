@@ -6,57 +6,62 @@ import javax.sql.DataSource;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-import org.springframework.transaction.PlatformTransactionManager;
+
+import com.atomikos.jdbc.AtomikosDataSourceBean;
+import com.mysql.jdbc.jdbc2.optional.MysqlXADataSource;
 
 import erdemc.dao.first.FirstDAO;
 import erdemc.model.first.First;
 
 @Configuration
+@DependsOn("transactionManager")
 @EnableJpaRepositories(basePackageClasses = FirstDAO.class, entityManagerFactoryRef = "firstEntityManager", transactionManagerRef = "firstTransactionManager")
 public class FirstConfiguration {
 
-	@Bean
 	@Primary
-	public LocalContainerEntityManagerFactoryBean firstEntityManager() {
-		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-		em.setDataSource(firstDataSource());
-		em.setPackagesToScan(new String[] { First.class.getPackage().getName() });
-
-		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-		vendorAdapter.setShowSql(true);
-		em.setJpaVendorAdapter(vendorAdapter);
+	@Bean
+	@DependsOn("transactionManager")
+	public LocalContainerEntityManagerFactoryBean firstEntityManager(JpaVendorAdapter vendorAdapter) {
 		HashMap<String, Object> properties = new HashMap<String, Object>();
-		properties.put("hibernate.hbm2ddl.auto", "none");
-		properties.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
-		em.setJpaPropertyMap(properties);
-
-		return em;
+		properties.put("hibernate.transaction.jta.platform", AtomikosJtaPlatform.class.getName());
+		properties.put("javax.persistence.transactionType", "JTA");
+		
+		LocalContainerEntityManagerFactoryBean entityManager = new LocalContainerEntityManagerFactoryBean();
+		entityManager.setJtaDataSource(firstDataSource());
+		entityManager.setJpaVendorAdapter(vendorAdapter);
+		entityManager.setPackagesToScan(First.class.getPackage().getName());
+		entityManager.setPersistenceUnitName("firstPersistenceUnit");
+		entityManager.setJpaPropertyMap(properties);
+		return entityManager;
 	}
 
 	@Primary
-	@Bean
+	@Bean(initMethod = "init", destroyMethod = "close")
 	public DataSource firstDataSource() {
-		DriverManagerDataSource dataSource = new DriverManagerDataSource();
-		dataSource.setDriverClassName("com.mysql.jdbc.Driver");
-		dataSource.setUrl("jdbc:mysql://localhost:3306/jtatrial");
-		dataSource.setUsername("erdemc");
-		dataSource.setPassword("invader84;");
+		MysqlXADataSource mysqlXaDataSource = new MysqlXADataSource();
+		mysqlXaDataSource.setUrl("jdbc:mysql://localhost:3306/jtatrial");
+		mysqlXaDataSource.setPinGlobalTxToPhysicalConnection(true);
+		mysqlXaDataSource.setPassword("invader84;");
+		mysqlXaDataSource.setUser("erdemc");
+		mysqlXaDataSource.setPinGlobalTxToPhysicalConnection(true);
 
-		return dataSource;
+		AtomikosDataSourceBean xaDataSource = new AtomikosDataSourceBean();
+		xaDataSource.setXaDataSource(mysqlXaDataSource);
+		xaDataSource.setUniqueResourceName("xads1");
+		return xaDataSource;
 	}
 
-	@Primary
-	@Bean
-	public PlatformTransactionManager firstTransactionManager() {
-		JpaTransactionManager transactionManager = new JpaTransactionManager();
-		transactionManager.setEntityManagerFactory(firstEntityManager().getObject());
-		return transactionManager;
-	}
+//	@Primary
+//	@Bean
+//	public PlatformTransactionManager firstTransactionManager() {
+//		JpaTransactionManager transactionManager = new JpaTransactionManager();
+//		transactionManager.setEntityManagerFactory(firstEntityManager().getObject());
+//		return transactionManager;
+//	}
 
 }
