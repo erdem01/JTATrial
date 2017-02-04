@@ -21,6 +21,11 @@ import com.atomikos.icatch.jta.UserTransactionManager;
 @EnableTransactionManagement
 public class JTAConfiguration {
 	
+	public static final String TRANSACTION_MGR_NAME = "transactionManager";
+	private static final String ATOMIKOS_TRANSACTION_MANAGER_NAME = "atomikosTransactionManager";
+	private static final String USER_TRANSACTION_NAME = "userTransaction";
+	
+	
 	@Bean
 	public PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
 		return new PropertySourcesPlaceholderConfigurer();
@@ -35,7 +40,7 @@ public class JTAConfiguration {
 		return hibernateJpaVendorAdapter;
 	}
 
-	@Bean(name = "userTransaction")
+	@Bean(name = USER_TRANSACTION_NAME)
 	public UserTransaction userTransaction() throws Throwable {
 		UserTransactionImp userTransactionImp = new UserTransactionImp();
 		userTransactionImp.setTransactionTimeout(10000);
@@ -43,7 +48,7 @@ public class JTAConfiguration {
 		return userTransactionImp;
 	}
 	
-	@Bean(name = "atomikosTransactionManager", initMethod = "init", destroyMethod = "close")
+	@Bean(name = ATOMIKOS_TRANSACTION_MANAGER_NAME, initMethod = "init", destroyMethod = "close")
 	public TransactionManager atomikosTransactionManager() throws Throwable {
 		UserTransactionManager userTransactionManager = new UserTransactionManager();
 		userTransactionManager.setForceShutdown(false);
@@ -51,8 +56,8 @@ public class JTAConfiguration {
 		return userTransactionManager;
 	}
 	
-	@Bean(name = "transactionManager")
-	@DependsOn({ "userTransaction", "atomikosTransactionManager" })
+	@Bean(name = TRANSACTION_MGR_NAME)
+	@DependsOn({ USER_TRANSACTION_NAME, ATOMIKOS_TRANSACTION_MANAGER_NAME })
 	public PlatformTransactionManager transactionManager() throws Throwable {
 		UserTransaction userTransaction = userTransaction();
 		TransactionManager atomikosTransactionManager = atomikosTransactionManager();

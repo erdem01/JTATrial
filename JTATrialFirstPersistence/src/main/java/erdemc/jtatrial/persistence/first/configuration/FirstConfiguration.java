@@ -10,8 +10,8 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.atomikos.jdbc.AtomikosDataSourceBean;
@@ -22,21 +22,20 @@ import erdemc.jtatrial.persistence.first.annotations.StandaloneProfile;
 import erdemc.jtatrial.persistence.first.dao.FirstDAO;
 import erdemc.jtatrial.persistence.first.model.First;
 import erdemc.jtatrial.txn.configuration.AtomikosJtaPlatform;
+import erdemc.jtatrial.txn.configuration.JTAConfiguration;
 
 @FirstPersistenceQualifier
 @Configuration
-@DependsOn("transactionManager")
+@DependsOn(JTAConfiguration.TRANSACTION_MGR_NAME)
 @EnableJpaRepositories(basePackageClasses = FirstDAO.class, entityManagerFactoryRef = "firstEntityManager", transactionManagerRef = "firstTransactionManager")
 public class FirstConfiguration {
 
 	@Bean
-	@DependsOn("transactionManager")
-	public LocalContainerEntityManagerFactoryBean firstEntityManager(@FirstPersistenceQualifier DataSource dataSource) {
+	public LocalContainerEntityManagerFactoryBean firstEntityManager(JpaVendorAdapter vendorAdapter, @FirstPersistenceQualifier DataSource dataSource) {
 		HashMap<String, Object> properties = new HashMap<String, Object>();
 		properties.put("hibernate.transaction.jta.platform", AtomikosJtaPlatform.class.getName());
 		properties.put("javax.persistence.transactionType", "JTA");
 		
-		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
 		LocalContainerEntityManagerFactoryBean entityManager = new LocalContainerEntityManagerFactoryBean();
 		entityManager.setJtaDataSource(dataSource);
 		entityManager.setJpaVendorAdapter(vendorAdapter);
