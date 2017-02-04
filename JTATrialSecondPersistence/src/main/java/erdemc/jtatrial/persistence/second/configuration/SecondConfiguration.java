@@ -16,27 +16,27 @@ import org.springframework.transaction.PlatformTransactionManager;
 import com.atomikos.jdbc.AtomikosDataSourceBean;
 import com.mysql.jdbc.jdbc2.optional.MysqlXADataSource;
 
-import erdemc.jtatrial.persistence.second.annotations.SecondPersistenceQualifier;
 import erdemc.jtatrial.persistence.second.annotations.StandaloneProfile;
 import erdemc.jtatrial.persistence.second.dao.SecondDAO;
 import erdemc.jtatrial.persistence.second.model.Second;
 import erdemc.jtatrial.txn.configuration.AtomikosJtaPlatform;
 import erdemc.jtatrial.txn.configuration.JTAConfiguration;
 
-@SecondPersistenceQualifier
 @Configuration
 @DependsOn(JTAConfiguration.TRANSACTION_MGR_NAME)
 @EnableJpaRepositories(basePackageClasses = SecondDAO.class, entityManagerFactoryRef = "secondEntityManager", transactionManagerRef = "secondTransactionManager")
 public class SecondConfiguration {
 
+
 	@Bean
-	public LocalContainerEntityManagerFactoryBean secondEntityManager(JpaVendorAdapter vendorAdapter, @SecondPersistenceQualifier DataSource dataSource) {
+	@DependsOn("secondDataSource")
+	public LocalContainerEntityManagerFactoryBean secondEntityManager(JpaVendorAdapter vendorAdapter) {
 		HashMap<String, Object> properties = new HashMap<String, Object>();
 		properties.put("hibernate.transaction.jta.platform", AtomikosJtaPlatform.class.getName());
 		properties.put("javax.persistence.transactionType", "JTA");
 		
 		LocalContainerEntityManagerFactoryBean entityManager = new LocalContainerEntityManagerFactoryBean();
-		entityManager.setJtaDataSource(dataSource);
+		entityManager.setJtaDataSource(secondDataSource());
 		entityManager.setJpaVendorAdapter(vendorAdapter);
 		entityManager.setPackagesToScan(Second.class.getPackage().getName());
 		entityManager.setPersistenceUnitName("secondPersistenceUnit");
@@ -61,7 +61,7 @@ public class SecondConfiguration {
 
 	@StandaloneProfile
 	@Bean
-	public PlatformTransactionManager secondTransactionManager(@SecondPersistenceQualifier LocalContainerEntityManagerFactoryBean entityManager) {
+	public PlatformTransactionManager secondTransactionManager(LocalContainerEntityManagerFactoryBean entityManager) {
 		JpaTransactionManager transactionManager = new JpaTransactionManager();
 		transactionManager.setEntityManagerFactory(entityManager.getObject());
 		return transactionManager;

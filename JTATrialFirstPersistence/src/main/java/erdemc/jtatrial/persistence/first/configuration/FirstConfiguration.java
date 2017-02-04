@@ -17,27 +17,26 @@ import org.springframework.transaction.PlatformTransactionManager;
 import com.atomikos.jdbc.AtomikosDataSourceBean;
 import com.mysql.jdbc.jdbc2.optional.MysqlXADataSource;
 
-import erdemc.jtatrial.persistence.first.annotations.FirstPersistenceQualifier;
 import erdemc.jtatrial.persistence.first.annotations.StandaloneProfile;
 import erdemc.jtatrial.persistence.first.dao.FirstDAO;
 import erdemc.jtatrial.persistence.first.model.First;
 import erdemc.jtatrial.txn.configuration.AtomikosJtaPlatform;
 import erdemc.jtatrial.txn.configuration.JTAConfiguration;
 
-@FirstPersistenceQualifier
 @Configuration
 @DependsOn(JTAConfiguration.TRANSACTION_MGR_NAME)
 @EnableJpaRepositories(basePackageClasses = FirstDAO.class, entityManagerFactoryRef = "firstEntityManager", transactionManagerRef = "firstTransactionManager")
 public class FirstConfiguration {
 
+	@Primary
 	@Bean
-	public LocalContainerEntityManagerFactoryBean firstEntityManager(JpaVendorAdapter vendorAdapter, @FirstPersistenceQualifier DataSource dataSource) {
+	public LocalContainerEntityManagerFactoryBean firstEntityManager(JpaVendorAdapter vendorAdapter) {
 		HashMap<String, Object> properties = new HashMap<String, Object>();
 		properties.put("hibernate.transaction.jta.platform", AtomikosJtaPlatform.class.getName());
 		properties.put("javax.persistence.transactionType", "JTA");
 		
 		LocalContainerEntityManagerFactoryBean entityManager = new LocalContainerEntityManagerFactoryBean();
-		entityManager.setJtaDataSource(dataSource);
+		entityManager.setJtaDataSource(firstDataSource());
 		entityManager.setJpaVendorAdapter(vendorAdapter);
 		entityManager.setJpaVendorAdapter(vendorAdapter);
 		entityManager.setPackagesToScan(First.class.getPackage().getName());
@@ -46,6 +45,7 @@ public class FirstConfiguration {
 		return entityManager;
 	}
 
+	@Primary
 	@Bean(initMethod = "init", destroyMethod = "close")
 	public DataSource firstDataSource() {
 		MysqlXADataSource mysqlXaDataSource = new MysqlXADataSource();
@@ -64,7 +64,7 @@ public class FirstConfiguration {
 	@StandaloneProfile
 	@Primary
 	@Bean
-	public PlatformTransactionManager firstTransactionManager(@FirstPersistenceQualifier LocalContainerEntityManagerFactoryBean entityManager) {
+	public PlatformTransactionManager firstTransactionManager(LocalContainerEntityManagerFactoryBean entityManager) {
 		JpaTransactionManager transactionManager = new JpaTransactionManager();
 		transactionManager.setEntityManagerFactory(entityManager.getObject());
 		return transactionManager;

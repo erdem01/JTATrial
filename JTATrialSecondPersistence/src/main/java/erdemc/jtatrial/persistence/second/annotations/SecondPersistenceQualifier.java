@@ -1,8 +1,15 @@
 package erdemc.jtatrial.persistence.second.annotations;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 
-@Qualifier("SecondPersistenceQualifier")
+@Target({ ElementType.CONSTRUCTOR, ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.TYPE })
+@Retention(RetentionPolicy.RUNTIME)
+@Qualifier
 public @interface SecondPersistenceQualifier {
 
 }

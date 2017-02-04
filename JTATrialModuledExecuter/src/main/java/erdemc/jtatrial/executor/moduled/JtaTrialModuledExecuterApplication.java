@@ -10,14 +10,19 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfigurat
 import org.springframework.boot.autoconfigure.transaction.jta.JtaAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Import;
 
+import erdemc.jtatrial.persistence.first.JtaTrialFirstPersistenceApplication;
 import erdemc.jtatrial.persistence.first.dao.FirstDAO;
 import erdemc.jtatrial.persistence.first.model.First;
+import erdemc.jtatrial.persistence.second.JtaTrialSecondPersistenceApplication;
 import erdemc.jtatrial.persistence.second.dao.SecondDAO;
 import erdemc.jtatrial.persistence.second.model.Second;
+import erdemc.jtatrial.txn.JtaTrialTransactionManagerApplication;
 
 @SpringBootApplication
 @EnableAutoConfiguration(exclude={HibernateJpaAutoConfiguration.class, JtaAutoConfiguration.class})
+@Import({JtaTrialTransactionManagerApplication.class, JtaTrialSecondPersistenceApplication.class, JtaTrialFirstPersistenceApplication.class})
 public class JtaTrialModuledExecuterApplication {
 
 	@Autowired
