@@ -56,6 +56,8 @@ public class SecondConfiguration {
 		AtomikosDataSourceBean xaDataSource = new AtomikosDataSourceBean();
 		xaDataSource.setXaDataSource(mysqlXaDataSource);
 		xaDataSource.setUniqueResourceName("xads2");
+		//TODO: This has been put here for enabling startup. Be sure of if connections are closing.
+		xaDataSource.setMaxPoolSize(100);
 		return xaDataSource;
 	}
 
