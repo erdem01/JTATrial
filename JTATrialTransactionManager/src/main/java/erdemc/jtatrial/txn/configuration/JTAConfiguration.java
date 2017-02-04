@@ -42,18 +42,24 @@ public class JTAConfiguration {
 
 	@Bean(name = USER_TRANSACTION_NAME)
 	public UserTransaction userTransaction() throws Throwable {
-		UserTransactionImp userTransactionImp = new UserTransactionImp();
-		userTransactionImp.setTransactionTimeout(10000);
-		AtomikosJtaPlatform.transaction = userTransactionImp;
-		return userTransactionImp;
+		if(AtomikosJtaPlatform.transaction == null) {
+			UserTransactionImp userTransactionImp = new UserTransactionImp();
+//			userTransactionImp.
+//			userTransactionImp.setTransactionTimeout(10000);
+			AtomikosJtaPlatform.transaction = userTransactionImp;
+		}
+		return AtomikosJtaPlatform.transaction;
 	}
 	
 	@Bean(name = ATOMIKOS_TRANSACTION_MANAGER_NAME, initMethod = "init", destroyMethod = "close")
 	public TransactionManager atomikosTransactionManager() throws Throwable {
-		UserTransactionManager userTransactionManager = new UserTransactionManager();
-		userTransactionManager.setForceShutdown(false);
-		AtomikosJtaPlatform.transactionManager = userTransactionManager;
-		return userTransactionManager;
+		if(AtomikosJtaPlatform.transactionManager == null) {
+			UserTransactionManager userTransactionManager = new UserTransactionManager();
+//			userTransactionManager.setForceShutdown(false);
+//			userTransactionManager.set
+			AtomikosJtaPlatform.transactionManager = userTransactionManager;
+		}
+		return AtomikosJtaPlatform.transactionManager;
 	}
 	
 	@Bean(name = TRANSACTION_MGR_NAME)

@@ -3,13 +3,13 @@ package erdemc.jtatrial.executor.moduled;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.Banner;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.autoconfigure.transaction.jta.JtaAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Import;
 
 import erdemc.jtatrial.persistence.first.JtaTrialFirstPersistenceApplication;
@@ -23,7 +23,7 @@ import erdemc.jtatrial.txn.JtaTrialTransactionManagerApplication;
 @SpringBootApplication
 @EnableAutoConfiguration(exclude={HibernateJpaAutoConfiguration.class, JtaAutoConfiguration.class})
 @Import({JtaTrialTransactionManagerApplication.class, JtaTrialSecondPersistenceApplication.class, JtaTrialFirstPersistenceApplication.class})
-public class JtaTrialModuledExecuterApplication {
+public class JtaTrialModuledExecuterApplication extends SpringBootServletInitializer {
 
 	@Autowired
 	private FirstDAO firstDAO;
@@ -32,11 +32,12 @@ public class JtaTrialModuledExecuterApplication {
 	private SecondDAO secondDAO;
 	
 	public static void main(String[] args) {
-		ConfigurableApplicationContext context = new SpringApplicationBuilder().sources(JtaTrialModuledExecuterApplication.class)
-				.bannerMode(Banner.Mode.OFF).run(args);
-
-		JtaTrialModuledExecuterApplication app = context.getBean(JtaTrialModuledExecuterApplication.class);
-		app.start();
+		SpringApplication.run(JtaTrialModuledExecuterApplication.class, args);
+	}
+	
+	@Override
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+		return builder.sources(JtaTrialModuledExecuterApplication.class);
 	}
 
 	@Transactional
